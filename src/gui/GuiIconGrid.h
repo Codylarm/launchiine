@@ -49,8 +49,18 @@ public:
     void OnGameTitleAdded(gameInfo *info);
 
 private:
+#define GRID_7x4
+#ifdef GRID_7x4
+    static const int32_t MAX_ROWS = 4;
+    static const int32_t MAX_COLS = 7;
+    int tileWidth                 = 96;
+    int tileHeight                = 96;
+#else
     static const int32_t MAX_ROWS = 3;
     static const int32_t MAX_COLS = 5;
+    int tileWidth                 = 128;
+    int tileHeight                = 128;
+#endif
 
     bool sortByName = false;
 

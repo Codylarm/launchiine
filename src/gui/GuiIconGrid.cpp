@@ -70,7 +70,7 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
 
     arrowLeftButton.setImage(&arrowLeftImage);
     arrowLeftButton.setEffectGrow();
-    arrowLeftButton.setPosition(40, 0);
+    arrowLeftButton.setPosition(20, 0);
     arrowLeftButton.setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
     arrowLeftButton.setTrigger(&touchTrigger);
     arrowLeftButton.setTrigger(&wpadTouchTrigger);
@@ -85,7 +85,7 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
 
     arrowRightButton.setImage(&arrowRightImage);
     arrowRightButton.setEffectGrow();
-    arrowRightButton.setPosition(-40, 0);
+    arrowRightButton.setPosition(-20, 0);
     arrowRightButton.setAlignment(ALIGN_RIGHT | ALIGN_MIDDLE);
     arrowRightButton.setTrigger(&touchTrigger);
     arrowRightButton.setTrigger(&wpadTouchTrigger);
@@ -100,8 +100,9 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
     // at most we are rendering 2 screens at the same time
     for (int i = 0; i < MAX_COLS * MAX_ROWS * 2; i++) {
         GameIcon *image = new GameIcon(&emptyIcon);
+        image->setSize(tileWidth, tileHeight);
         emptyIcons.push_back(image);
-        GuiButton *button = new GuiButton(emptyIcon.getWidth(), emptyIcon.getHeight());
+        GuiButton *button = new GuiButton(tileWidth, tileHeight);
         button->setImage(image);
         button->setPosition(0, 0);
         //button->setEffectGrow();
@@ -432,12 +433,13 @@ void GuiIconGrid::OnGameTitleAdded(gameInfo *info) {
         imageData = info->imageData;
     }
     GameIcon *image = new GameIcon(imageData);
+    image->setSize(tileWidth, tileHeight);
     image->setRenderReflection(false);
     image->setStrokeRender(false);
     image->setSelected(info->titleId == selectedGame);
     image->setRenderIconLast(true);
 
-    GuiButton *button = new GuiButton(noIcon.getWidth(), noIcon.getHeight());
+    GuiButton *button = new GuiButton(tileWidth, tileHeight);
     button->setImage(image);
     button->setPosition(0, 0);
     button->setEffectGrow();
@@ -490,6 +492,9 @@ void GuiIconGrid::OnGameTitleUpdated(gameInfo *info) {
     // keep the lock to delay the draw() until the image data is ready.
     if (container != nullptr) {
         container->updateImageData();
+        if (container->image != NULL) {
+            container->image->setSize(tileWidth, tileHeight);
+        }
     }
 
     containerMutex.unlock();
@@ -587,7 +592,7 @@ void GuiIconGrid::updateButtonPositions() {
     arrowLeftButton.setState(GuiElement::STATE_DISABLED);
     arrowLeftButton.setVisible(false);
 
-    int32_t col = 0, row = 0, listOff = 0;
+    int32_t col = 0, row = 0;
 
     // create an empty vector of pairs
     std::vector<std::pair<uint64_t, GameInfoContainer *>> vec;
@@ -682,10 +687,10 @@ void GuiIconGrid::updateButtonPositions() {
     }
 
     for (uint32_t i = startPage * (MAX_COLS * MAX_ROWS); i < (endPage + 1) * (MAX_COLS * MAX_ROWS); i++) {
-        listOff            = i / (MAX_COLS * MAX_ROWS);
+        uint32_t listOff   = i / (MAX_COLS * MAX_ROWS);
         GuiButton *element = nullptr;
-        float posX         = currentLeftPosition + listOff * width + (col * (noIcon.getWidth() + noIcon.getWidth() * 0.5f) - (MAX_COLS * 0.5f - 0.5f) * (noIcon.getWidth() + noIcon.getWidth() * 0.5f));
-        float posY         = -row * (noIcon.getHeight() + noIcon.getHeight() * 0.5f) + (MAX_ROWS * 0.5f - 0.5f) * (noIcon.getHeight() + noIcon.getHeight() * 0.5f) + 30.0f;
+        float posX         = currentLeftPosition + listOff * width + (col * (tileWidth + tileWidth * 0.5f) - (MAX_COLS * 0.5f - 0.5f) * (tileWidth + tileWidth * 0.5f));
+        float posY         = -row * (tileHeight + tileHeight * 0.5f) + (MAX_ROWS * 0.5f - 0.5f) * (tileHeight + tileHeight * 0.5f) + 20.0f;
 
         if (i < position.size()) {
             uint64_t titleID = position.at(i);
