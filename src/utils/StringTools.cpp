@@ -101,6 +101,7 @@ const wchar_t *StringTools::wfmt(const char *format, ...) {
 
         if (bt > 0) {
             strWChar[bt] = 0;
+            va_end(va);
             return (const wchar_t *) strWChar;
         }
     }
