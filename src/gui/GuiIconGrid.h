@@ -96,6 +96,8 @@ private:
 
     GuiDragListener dragListener;
 
+    void MoveToOffset(int32_t offset, int delta);
+
     void OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
 
     void OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);

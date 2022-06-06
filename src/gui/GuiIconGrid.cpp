@@ -239,97 +239,75 @@ void GuiIconGrid::OnGameTitleListUpdated(GameList *gameList) {
     bUpdatePositions    = true;
 }
 
-void GuiIconGrid::OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
-    //setSelectedGame(0);
-    curPage--;
-    bUpdatePositions = true;
-}
+void GuiIconGrid::MoveToOffset(int32_t currentOffset, int delta) {
+    int32_t offset = currentOffset + delta;
 
-void GuiIconGrid::OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
-    //setSelectedGame(0);
-    curPage++;
-    bUpdatePositions = true;
-}
+    // No items
+    if (position.empty())
+        return;
 
-void GuiIconGrid::OnLeftClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
-    int32_t offset = offsetForTitleId(getSelectedGame());
-    if (offset < 0) {
+    // Current position unknown ; restart at zero
+    if (currentOffset < 0)
+        currentOffset = 0;
+
+    // Trying to go after last item by more than one move ; go to end
+    if ((uint32_t) offset >= position.size() && delta > 1)
+        offset = position.size() - 1;
+
+    // Trying to go before first item ; just ignore
+    if (offset < 0)
         return;
-    }
-    if ((offset % MAX_COLS) == 0) {
-        offset -= ((MAX_COLS * MAX_ROWS) - MAX_COLS) + 1;
-    } else {
-        offset--;
-    }
-    if (offset < 0 || position.empty()) {
+
+    // Trying to go after last item ; just ignore
+    if ((uint32_t) offset >= position.size())
         return;
-    }
+
     uint64_t newTitleId = position.at(offset);
     if (newTitleId > 0) {
         setSelectedGame(newTitleId);
         gameSelectionChanged(this, selectedGame);
+    }
+}
+
+void GuiIconGrid::OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    int32_t offset = offsetForTitleId(getSelectedGame());
+    MoveToOffset(offset, -MAX_COLS * MAX_ROWS);
+}
+
+void GuiIconGrid::OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    int32_t offset = offsetForTitleId(getSelectedGame());
+    MoveToOffset(offset, MAX_COLS * MAX_ROWS);
+}
+
+void GuiIconGrid::OnLeftClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    int32_t offset = offsetForTitleId(getSelectedGame());
+    if ((offset % MAX_COLS) == 0) {
+        MoveToOffset(offset, -((MAX_COLS * MAX_ROWS) - MAX_COLS + 1));
+    } else {
+        MoveToOffset(offset, -1);
     }
 }
 
 void GuiIconGrid::OnRightClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     int32_t offset = offsetForTitleId(getSelectedGame());
-    if (offset < 0) {
-        return;
-    }
     if ((offset % MAX_COLS) == MAX_COLS - 1) {
-        offset += ((MAX_COLS * MAX_ROWS) - MAX_COLS) + 1;
+        MoveToOffset(offset, (MAX_COLS * MAX_ROWS) - MAX_COLS + 1);
     } else {
-        offset++;
-    }
-    if ((uint32_t) offset >= position.size()) {
-        return;
-    }
-    uint64_t newTitleId = position.at(offset);
-    if (newTitleId > 0) {
-        setSelectedGame(newTitleId);
-        gameSelectionChanged(this, selectedGame);
+        MoveToOffset(offset, 1);
     }
 }
 
 void GuiIconGrid::OnDownClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     int32_t offset = offsetForTitleId(getSelectedGame());
-    if (offset < 0) {
-        return;
-    }
     if (offset % (MAX_COLS * MAX_ROWS) < (MAX_COLS * MAX_ROWS) - MAX_COLS) {
-        offset = offset + MAX_COLS;
-    } else {
-        return;
-    }
-
-    if ((uint32_t) offset >= position.size()) {
-        return;
-    }
-    uint64_t newTitleId = position.at(offset);
-    if (newTitleId > 0) {
-        setSelectedGame(newTitleId);
-        gameSelectionChanged(this, selectedGame);
+        MoveToOffset(offset, MAX_COLS);
     }
 }
 
 void GuiIconGrid::OnUpClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     int32_t offset = offsetForTitleId(getSelectedGame());
-    if (offset < 0) {
-        return;
-    }
     if (offset % (MAX_COLS * MAX_ROWS) >= MAX_COLS) {
-        offset = offset - MAX_COLS;
-    } else {
-        return;
-    }
-
-    if (offset < 0) {
-        return;
-    }
-    uint64_t newTitleId = position.at(offset);
-    if (newTitleId > 0) {
-        setSelectedGame(newTitleId);
-        gameSelectionChanged(this, selectedGame);
+        MoveToOffset(offset, -MAX_COLS);
     }
 }
 
