@@ -39,14 +39,12 @@ MainWindow::MainWindow(int32_t w, int32_t h)
         pointerValid[i] = false;
     }
     SetupMainView();
-    gameList.titleListChanged.connect(this, &MainWindow::OnGameTitleListChanged);
     gameList.titleUpdated.connect(this, &MainWindow::OnGameTitleUpdated);
     gameList.titleAdded.connect(this, &MainWindow::OnGameTitleAdded);
     AsyncExecutor::execute([&] { gameList.load(); });
 }
 
 MainWindow::~MainWindow() {
-    gameList.titleListChanged.disconnect(this);
     gameList.titleUpdated.disconnect(this);
     gameList.titleAdded.disconnect(this);
     while (!tvElements.empty()) {
@@ -117,13 +115,6 @@ void MainWindow::process() {
             mainSwitchButtonFrame->clearState(GuiElement::STATE_DISABLED);
         } else {
         }
-    }
-}
-
-void MainWindow::OnGameTitleListChanged(GameList *list) {
-    currentTvFrame->OnGameTitleListUpdated(list);
-    if (currentTvFrame != currentDrcFrame) {
-        currentDrcFrame->OnGameTitleListUpdated(list);
     }
 }
 
@@ -368,6 +359,8 @@ void MainWindow::OnGameSelectionChange(GuiTitleBrowser *element, uint64_t select
 
 void MainWindow::OnGameLaunchSplashScreen(GuiTitleBrowser *element, uint64_t titleID) {
     DEBUG_FUNCTION_LINE("");
+    // Abort loading of games
+    gameList.loadAbort();
     gameInfo *info = gameList.getGameInfo(titleID);
     if (info != nullptr) {
         auto *splashScreenDRC = new GameSplashScreen(width, height, info, false);

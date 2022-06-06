@@ -14,8 +14,6 @@ public:
 
     virtual uint64_t getSelectedGame(void) = 0;
 
-    virtual void OnGameTitleListUpdated(GameList *list) = 0;
-
     virtual void OnGameTitleUpdated(gameInfo *info) = 0;
 
     virtual void OnGameTitleAdded(gameInfo *info) = 0;

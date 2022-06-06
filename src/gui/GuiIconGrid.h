@@ -40,8 +40,6 @@ public:
 
     void process();
 
-    void OnGameTitleListUpdated(GameList *list);
-
     void OnAddGameTitle(gameInfo *info);
 
     void OnGameTitleUpdated(gameInfo *info);

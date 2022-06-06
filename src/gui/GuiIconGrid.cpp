@@ -189,56 +189,6 @@ uint64_t GuiIconGrid::getSelectedGame(void) {
     return selectedGame;
 }
 
-void GuiIconGrid::OnGameTitleListUpdated(GameList *gameList) {
-    gameList->lock();
-    containerMutex.lock();
-    positionMutex.lock();
-    // At first delete the ones that were deleted;
-    auto it = gameInfoContainers.begin();
-    while (it != gameInfoContainers.end()) {
-        bool wasFound = false;
-        for (int32_t i = 0; i < gameList->size(); i++) {
-            gameInfo *info = gameList->at(i);
-            if (info != nullptr && info->titleId == it->first) {
-                wasFound = true;
-                break;
-            }
-        }
-
-        if (!wasFound) {
-            DEBUG_FUNCTION_LINE("Removing %016llX", it->first);
-            remove(it->second->button);
-            delete it->second;
-            it = gameInfoContainers.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    for (int32_t i = 0; i < gameList->size(); i++) {
-        gameInfo *info               = gameList->at(i);
-        GameInfoContainer *container = nullptr;
-
-        for (auto const &x : gameInfoContainers) {
-            if (info->titleId == x.first) {
-                container = x.second;
-                break;
-            }
-        }
-        if (container == nullptr) {
-            OnGameTitleAdded(info);
-        }
-    }
-    positionMutex.unlock();
-    containerMutex.unlock();
-    gameList->unlock();
-    setSelectedGame(0);
-    gameSelectionChanged(this, selectedGame);
-    curPage             = 0;
-    currentLeftPosition = 0;
-    bUpdatePositions    = true;
-}
-
 void GuiIconGrid::MoveToOffset(int32_t currentOffset, int delta) {
     int32_t offset = currentOffset + delta;
 
@@ -469,6 +419,7 @@ void GuiIconGrid::OnGameTitleUpdated(gameInfo *info) {
 
     // keep the lock to delay the draw() until the image data is ready.
     if (container != nullptr) {
+        bUpdatePositions = true;
         container->updateImageData();
         if (container->image != NULL) {
             container->image->setSize(tileWidth, tileHeight);
@@ -477,7 +428,9 @@ void GuiIconGrid::OnGameTitleUpdated(gameInfo *info) {
 
     containerMutex.unlock();
 
-    bUpdatePositions = true;
+    if (container == nullptr) {
+        OnGameTitleAdded(info);
+    }
 }
 
 void GuiIconGrid::process() {
