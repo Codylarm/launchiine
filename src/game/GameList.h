@@ -62,6 +62,12 @@ protected:
     std::mutex _lock;
 
     std::atomic<bool> stopAsyncLoading = false;
+
+private:
+    GuiImageData iconvWii;
+
+    int add(uint64_t titleId, MCPAppType appType, std::string name, std::string gamePath, GuiImageData *imageData);
+    int add(struct MCPTitleListType *title);
 };
 
 #endif

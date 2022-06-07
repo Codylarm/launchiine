@@ -1,3 +1,4 @@
+#include "Application.h"
 #include <algorithm>
 #include <coreinit/cache.h>
 #include <coreinit/mcp.h>
@@ -12,6 +13,7 @@
 #include "GameList.h"
 #include "common/common.h"
 #include "utils/AsyncExecutor.h"
+#include "utils/vwii.h"
 
 #include "fs/FSUtils.h"
 #include "utils/logger.h"
@@ -23,7 +25,7 @@ static std::string getTitleidAsString(uint64_t titleId) {
     return ss.str();
 }
 
-GameList::GameList() {
+GameList::GameList() : iconvWii(Resources::GetFile("iconvWii.png"), Resources::GetFileSize("iconvWii.png"), GX2_TEX_CLAMP_MODE_MIRROR) {
 }
 
 GameList::~GameList() {
@@ -56,6 +58,35 @@ gameInfo *GameList::getGameInfo(uint64_t titleId) {
         }
     }
     return nullptr;
+}
+
+static gameInfo *gameInfoNew(uint64_t titleId, MCPAppType appType, std::string name, std::string gamePath, GuiImageData *imageData) {
+    auto *newGameInfo     = new gameInfo;
+    newGameInfo->titleId  = titleId;
+    newGameInfo->appType  = appType;
+    newGameInfo->gamePath = gamePath;
+    if (name.size() != 0) {
+        newGameInfo->name = name;
+    } else {
+        newGameInfo->name = getTitleidAsString(titleId);
+    }
+    newGameInfo->imageData = imageData;
+    DCFlushRange(newGameInfo, sizeof(gameInfo));
+    return newGameInfo;
+}
+
+int GameList::add(uint64_t titleId, MCPAppType appType, std::string name, std::string gamePath, GuiImageData *imageData) {
+    auto *newGameInfo = gameInfoNew(titleId, appType, name, gamePath, imageData);
+    {
+        std::lock_guard guard(_lock);
+        fullGameList.push_back(newGameInfo);
+    }
+    titleAdded(newGameInfo);
+    return 0;
+}
+
+int GameList::add(struct MCPTitleListType *title) {
+    return add(title->titleId, title->appType, "", title->path, nullptr);
 }
 
 int32_t GameList::readGameList() {
@@ -103,19 +134,7 @@ int32_t GameList::readGameList() {
     }
 
     for (auto title_candidate : titles) {
-        auto *newGameInfo      = new gameInfo;
-        newGameInfo->titleId   = title_candidate.titleId;
-        newGameInfo->appType   = title_candidate.appType;
-        newGameInfo->gamePath  = title_candidate.path;
-        newGameInfo->name      = getTitleidAsString(title_candidate.titleId);
-        newGameInfo->imageData = nullptr;
-        DCFlushRange(newGameInfo, sizeof(gameInfo));
-
-        {
-            std::lock_guard guard(_lock);
-            fullGameList.push_back(newGameInfo);
-        }
-        titleAdded(newGameInfo);
+        add(&title_candidate);
         cnt++;
     }
 
@@ -174,6 +193,8 @@ void GameList::updateTitleInfo() {
 
 int32_t GameList::load() {
     clear();
+
+    add(TITLEID_VWII, MCP_APP_TYPE_SYSTEM_APPS, "vWii", "", &iconvWii);
     readGameList();
 
     // AsyncExecutor::execute([&] { updateTitleInfo(); });

@@ -24,6 +24,7 @@
 #include "gui/GuiTitleBrowser.h"
 #include "resources/Resources.h"
 #include "utils/AsyncExecutor.h"
+#include "utils/vwii.h"
 #include <coreinit/title.h>
 #include <future>
 #include <nn/acp/title.h>
@@ -449,6 +450,11 @@ void MainWindow::OnGameLaunch(uint64_t titleId) {
         titleId == 0x000500301001320AL) {
         DEBUG_FUNCTION_LINE("Launching TVii");
         _SYSSwitchTo(3);
+        return;
+    }
+    if (titleId == TITLEID_VWII) {
+        DEBUG_FUNCTION_LINE("Launching vWii");
+        bootvWiiMenu();
         return;
     }
 
