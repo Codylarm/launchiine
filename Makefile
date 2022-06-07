@@ -112,6 +112,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).rpx $(TARGET).elf
+	@rm -fr src/resources/filelist.h
 
 #-------------------------------------------------------------------------------
 else
