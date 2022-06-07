@@ -176,7 +176,7 @@ void GuiIconGrid::setSelectedGame(uint64_t idx) {
     containerMutex.unlock();
 
     int32_t offset = offsetForTitleId(getSelectedGame());
-    if (offset > 0) {
+    if (offset >= 0) {
         uint32_t newPage = offset / (MAX_COLS * MAX_ROWS);
         if (newPage != (uint32_t) curPage) {
             curPage          = newPage;
