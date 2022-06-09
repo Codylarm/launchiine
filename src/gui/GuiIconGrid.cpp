@@ -431,6 +431,12 @@ void GuiIconGrid::OnGameTitleUpdated(gameInfo *info) {
     if (container == nullptr) {
         OnGameTitleAdded(info);
     }
+
+    // Selected game was updated ; update displayed title
+    if (getSelectedGame() == info->titleId || getSelectedGame() == 0) {
+        // gameTitle.setText(info->name.c_str());
+        setSelectedGame(info->titleId);
+    }
 }
 
 void GuiIconGrid::process() {
