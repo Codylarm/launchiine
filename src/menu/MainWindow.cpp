@@ -402,6 +402,12 @@ extern "C" int32_t _SYSSwitchTo(uint32_t pfid);
 void MainWindow::OnGameLaunch(uint64_t titleId) {
     DEBUG_FUNCTION_LINE("Launch GAME!!");
 
+    // Stop the music (avoid an audio artefact while launching vWii)
+    Application *app = Application::instance();
+    if (app != nullptr) {
+        app->stopBgMusic();
+    }
+
     if (titleId == 0x0005001010040000L ||
         titleId == 0x0005001010040100L ||
         titleId == 0x0005001010040200L) {
@@ -465,8 +471,13 @@ void MainWindow::OnGameLaunch(uint64_t titleId) {
     if (err == 0) {
         ACPAssignTitlePatch(&titleInfo);
         _SYSLaunchTitleWithStdArgsInNoSplash(titleId, nullptr);
-        return;
+    } else {
+        DEBUG_FUNCTION_LINE("Failed launch titleId %016llX", titleId);
     }
 
-    DEBUG_FUNCTION_LINE("Failed launch titleId %016llX", titleId);
+    // Start the music
+    app = Application::instance();
+    if (app != nullptr) {
+        app->startBgMusic();
+    }
 }

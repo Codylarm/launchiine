@@ -51,6 +51,18 @@ public:
         return bgMusic;
     }
 
+    void startBgMusic() {
+        if (bgMusic != nullptr) {
+            bgMusic->SetVolume(50);
+        }
+    }
+
+    void stopBgMusic() {
+        if (bgMusic != nullptr) {
+            bgMusic->SetVolume(0);
+        }
+    }
+
     int exec(void);
 
     void fadeOut(void);
