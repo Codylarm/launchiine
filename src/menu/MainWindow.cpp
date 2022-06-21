@@ -408,71 +408,72 @@ void MainWindow::OnGameLaunch(uint64_t titleId) {
         app->stopBgMusic();
     }
 
-    if (titleId == 0x0005001010040000L ||
-        titleId == 0x0005001010040100L ||
-        titleId == 0x0005001010040200L) {
-        DEBUG_FUNCTION_LINE("Skip launching the Wii U Menu");
-        return;
-    }
+    switch (titleId) {
+        /*
+        case 0x0005001010040000L:
+        case 0x0005001010040100L:
+        case 0x0005001010040200L:
+            DEBUG_FUNCTION_LINE("Skip launching the Wii U Menu");
+            break;
+        */
+        case 0x000500301001220AL:
+        case 0x000500301001210AL:
+        case 0x000500301001200AL:
+            DEBUG_FUNCTION_LINE("Launching the browser");
+            SYSSwitchToBrowser(nullptr);
+            break;
 
-    if (titleId == 0x000500301001220AL ||
-        titleId == 0x000500301001210AL ||
-        titleId == 0x000500301001200AL) {
-        DEBUG_FUNCTION_LINE("Launching the browser");
-        SYSSwitchToBrowser(nullptr);
-        return;
-    }
-    if (titleId == 0x000500301001400AL ||
-        titleId == 0x000500301001410AL ||
-        titleId == 0x000500301001420AL) {
-        DEBUG_FUNCTION_LINE("Launching the Eshop");
-        SYSSwitchToEShop(nullptr);
+        case 0x000500301001400AL:
+        case 0x000500301001410AL:
+        case 0x000500301001420AL:
+            DEBUG_FUNCTION_LINE("Launching the Eshop");
+            SYSSwitchToEShop(nullptr);
+            break;
 
-        return;
-    }
-    if (titleId == 0x000500301001800AL ||
-        titleId == 0x000500301001810AL ||
-        titleId == 0x000500301001820AL) {
-        DEBUG_FUNCTION_LINE("Launching the Download Management");
-        _SYSSwitchTo(12);
-        return;
-    }
-    if (titleId == 0x000500301001600AL ||
-        titleId == 0x000500301001610AL ||
-        titleId == 0x000500301001620AL) {
-        DEBUG_FUNCTION_LINE("Launching Miiverse");
-        _SYSSwitchTo(9);
-        return;
-    }
-    if (titleId == 0x000500301001500AL ||
-        titleId == 0x000500301001510AL ||
-        titleId == 0x000500301001520AL) {
-        DEBUG_FUNCTION_LINE("Launching Friendlist");
-        _SYSSwitchTo(11);
-        return;
-    }
-    if (titleId == 0x000500301001300AL ||
-        titleId == 0x000500301001310AL ||
-        titleId == 0x000500301001320AL) {
-        DEBUG_FUNCTION_LINE("Launching TVii");
-        _SYSSwitchTo(3);
-        return;
-    }
-    if (titleId == TITLEID_VWII) {
-        DEBUG_FUNCTION_LINE("Launching vWii");
-        bootvWiiMenu();
-        return;
-    }
+        case 0x000500301001800AL:
+        case 0x000500301001810AL:
+        case 0x000500301001820AL:
+            DEBUG_FUNCTION_LINE("Launching the Download Management");
+            _SYSSwitchTo(12);
+            break;
 
-    MCPTitleListType titleInfo;
-    int32_t handle = MCP_Open();
-    auto err       = MCP_GetTitleInfo(handle, titleId, &titleInfo);
-    MCP_Close(handle);
-    if (err == 0) {
-        ACPAssignTitlePatch(&titleInfo);
-        _SYSLaunchTitleWithStdArgsInNoSplash(titleId, nullptr);
-    } else {
-        DEBUG_FUNCTION_LINE("Failed launch titleId %016llX", titleId);
+        case 0x000500301001600AL:
+        case 0x000500301001610AL:
+        case 0x000500301001620AL:
+            DEBUG_FUNCTION_LINE("Launching Miiverse");
+            _SYSSwitchTo(9);
+            break;
+
+        case 0x000500301001500AL:
+        case 0x000500301001510AL:
+        case 0x000500301001520AL:
+            DEBUG_FUNCTION_LINE("Launching Friendlist");
+            _SYSSwitchTo(11);
+            break;
+
+        case 0x000500301001300AL:
+        case 0x000500301001310AL:
+        case 0x000500301001320AL:
+            DEBUG_FUNCTION_LINE("Launching TVii");
+            _SYSSwitchTo(3);
+            break;
+
+        case TITLEID_VWII:
+            DEBUG_FUNCTION_LINE("Launching vWii");
+            bootvWiiMenu();
+            break;
+
+        default:
+            MCPTitleListType titleInfo;
+            int32_t handle = MCP_Open();
+            auto err       = MCP_GetTitleInfo(handle, titleId, &titleInfo);
+            MCP_Close(handle);
+            if (err == 0) {
+                ACPAssignTitlePatch(&titleInfo);
+                _SYSLaunchTitleWithStdArgsInNoSplash(titleId, nullptr);
+            } else {
+                DEBUG_FUNCTION_LINE("Failed launch titleId %016llX", titleId);
+            }
     }
 
     // Start the music
