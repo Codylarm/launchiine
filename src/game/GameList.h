@@ -43,6 +43,7 @@ public:
     void clear();
 
     int32_t load();
+    int32_t save();
 
     void loadAbort() {
         stopAsyncLoading = true;
@@ -65,9 +66,16 @@ protected:
 
 private:
     GuiImageData iconvWii;
+    bool saveNeeded = true;
 
     int add(uint64_t titleId, MCPAppType appType, std::string name, std::string gamePath, GuiImageData *imageData);
     int add(struct MCPTitleListType *title);
+    bool loadFromConfig(bool updateExistingOnly = false);
+    void sortByName();
+    bool setTitleName(uint64_t titleId, std::string name);
+
+    void updateGameNames();
+    void updateGameImages();
 };
 
 #endif
