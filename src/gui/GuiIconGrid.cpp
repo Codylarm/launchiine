@@ -103,6 +103,7 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
         image->setSize(tileWidth, tileHeight);
         emptyIcons.push_back(image);
         GuiButton *button = new GuiButton(tileWidth, tileHeight);
+        button->setVisible(false);
         button->setImage(image);
         button->setPosition(0, 0);
         //button->setEffectGrow();
@@ -649,7 +650,10 @@ void GuiIconGrid::updateButtonPositions() {
                 break;
             }
             element = emptyButtons.at(emptyIconUse);
+            element->setVisible(false);
             emptyIconUse++;
+        } else {
+            element->setVisible(true);
         }
         positionButtons.push_back(element);
         element->setPosition(posX, posY);
