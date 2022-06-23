@@ -495,14 +495,14 @@ void GuiIconGrid::process() {
     }
 
     if (currentLeftPosition < targetLeftPosition) {
-        currentLeftPosition += 35;
+        currentLeftPosition += 64;
 
         if (currentLeftPosition > targetLeftPosition)
             currentLeftPosition = targetLeftPosition;
 
         bUpdatePositions = true;
     } else if (currentLeftPosition > targetLeftPosition) {
-        currentLeftPosition -= 35;
+        currentLeftPosition -= 64;
 
         if (currentLeftPosition < targetLeftPosition)
             currentLeftPosition = targetLeftPosition;
