@@ -80,7 +80,6 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
     arrowLeftButton.clicked.connect(this, &GuiIconGrid::OnLeftArrowClick);
     arrowLeftButton.held.connect(this, &GuiIconGrid::OnLeftArrowHeld);
     arrowLeftButton.released.connect(this, &GuiIconGrid::OnLeftArrowReleased);
-
     append(&arrowLeftButton);
 
     arrowRightButton.setImage(&arrowRightImage);
@@ -119,9 +118,9 @@ GuiIconGrid::GuiIconGrid(int32_t w, int32_t h, uint64_t GameIndex, bool sortByNa
 
     append(&dragListener);
 
-    gameTitle.setPosition(0, -320);
+    gameTitle.setPosition(0, -(1080/2 - 60));
     gameTitle.setBlurGlowColor(5.0f, glm::vec4(0.109804, 0.6549, 1.0f, 1.0f));
-    gameTitle.setMaxWidth(900, GuiText::DOTTED);
+    gameTitle.setMaxWidth(1920-600, GuiText::DOTTED);
     gameTitle.setText("");
     append(&gameTitle);
 }

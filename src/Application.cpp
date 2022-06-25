@@ -49,8 +49,6 @@ Application::Application()
     bgMusic->Play();
     bgMusic->SetVolume(50);
 
-    AsyncExecutor::execute([] { DEBUG_FUNCTION_LINE("Hello"); });
-
     exitApplication = false;
 
     ProcUIInit(OSSavesDone_ReadyToRelease);
@@ -171,7 +169,7 @@ bool Application::procUI() {
                     libgui_memoryInitialize();
 
                     DEBUG_FUNCTION_LINE("Initialize video");
-                    video = new CVideo(GX2_TV_SCAN_MODE_720P, GX2_DRC_RENDER_MODE_SINGLE);
+                    video = new CVideo(GX2_TV_SCAN_MODE_1080P, GX2_DRC_RENDER_MODE_SINGLE);
                     DEBUG_FUNCTION_LINE("Video size %i x %i", video->getTvWidth(), video->getTvHeight());
 
                     //! setup default Font
