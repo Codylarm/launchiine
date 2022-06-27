@@ -3,12 +3,6 @@
 
 AsyncExecutor *AsyncExecutor::instance = nullptr;
 
-void AsyncExecutor::pushForDeleteInternal(GuiElement *ptr) {
-    deleteListMutex.lock();
-    deleteList.push(ptr);
-    deleteListMutex.unlock();
-}
-
 AsyncExecutor::AsyncExecutor() {
     thread = new std::thread([&]() {
         while (!exitThread) {
@@ -28,13 +22,6 @@ AsyncExecutor::AsyncExecutor() {
                 DEBUG_FUNCTION_LINE("All tasks are done");
             }
             mutex.unlock();
-            deleteListMutex.lock();
-            while (!deleteList.empty()) {
-                GuiElement *ptr = deleteList.front();
-                deleteList.pop();
-                delete ptr;
-            }
-            deleteListMutex.unlock();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
             DCFlushRange((void *) &exitThread, sizeof(exitThread));

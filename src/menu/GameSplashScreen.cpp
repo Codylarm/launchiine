@@ -59,6 +59,9 @@ void GameSplashScreen::draw(CVideo *v) {
 GameSplashScreen::~GameSplashScreen() {
     DEBUG_FUNCTION_LINE("Destroy me");
     if (splashScreenData) {
-        AsyncExecutor::pushForDelete(splashScreenData);
+        bgImageColor.setImageData(nullptr);
+        remove(&bgImageColor);
+        delete splashScreenData;
+        splashScreenData = nullptr;
     }
 }

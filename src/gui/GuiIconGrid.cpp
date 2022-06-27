@@ -129,6 +129,7 @@ GuiIconGrid::~GuiIconGrid() {
     containerMutex.lock();
     for (auto const &x : gameInfoContainers) {
         remove(x.second->button);
+        remove(x.second->image);
         delete x.second;
     }
     gameInfoContainers.clear();
@@ -383,6 +384,7 @@ void GuiIconGrid::OnGameTitleAdded(gameInfo *info) {
     button->pointedOff.connect(this, &GuiIconGrid::OnGameButtonPointedOff);
     //button->dragged.connect(this, &GuiIconGrid::OnGameButtonDragged);
 
+    // GameInfoContainer own button and image. info is still shared
     GameInfoContainer *container = new GameInfoContainer(button, image, info);
     containerMutex.lock();
     gameInfoContainers[info->titleId] = container;

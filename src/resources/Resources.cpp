@@ -115,7 +115,8 @@ void Resources::RemoveImageData(GuiImageData *image) {
             itr->second.first--;
 
             if (itr->second.first == 0) {
-                AsyncExecutor::pushForDelete(itr->second.second);
+                delete itr->second.second;
+                itr->second.second = nullptr;
 
                 instance->imageDataMap.erase(itr);
             }
@@ -161,7 +162,8 @@ void Resources::RemoveSound(GuiSound *sound) {
             itr->second.first--;
 
             if (itr->second.first == 0) {
-                AsyncExecutor::pushForDelete(itr->second.second);
+                delete itr->second.second;
+                itr->second.second = nullptr;
                 instance->soundDataMap.erase(itr);
             }
             break;

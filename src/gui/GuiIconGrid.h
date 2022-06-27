@@ -155,10 +155,10 @@ private:
 
         ~GameInfoContainer() {
             if (button != nullptr) {
-                AsyncExecutor::pushForDelete(button);
+                delete button;
             }
             if (image != nullptr) {
-                AsyncExecutor::pushForDelete(image);
+                delete image;
             }
         }
 

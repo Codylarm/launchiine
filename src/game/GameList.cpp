@@ -38,11 +38,10 @@ GameList::~GameList() {
 };
 
 void GameList::clear() {
-    std::lock_guard guard(_lock);
     for (auto const &x : fullGameList) {
         if (x != nullptr) {
             if (x->imageData != nullptr) {
-                AsyncExecutor::pushForDelete(x->imageData);
+                // x->imageData is kept in GuiIconGrid for now
                 x->imageData = nullptr;
             }
             delete x;
@@ -54,8 +53,6 @@ void GameList::clear() {
 }
 
 gameInfo *GameList::getGameInfo(uint64_t titleId) {
-    std::lock_guard guard(_lock);
-
     for (uint32_t i = 0; i < fullGameList.size(); ++i) {
         if (titleId == fullGameList[i]->titleId) {
             return fullGameList[i];
@@ -87,8 +84,6 @@ static gameInfo *gameInfoNew(uint64_t titleId, MCPAppType appType, std::string n
 int GameList::add(uint64_t titleId, MCPAppType appType, std::string name, std::string gamePath, GuiImageData *imageData) {
     auto *newGameInfo = gameInfoNew(titleId, appType, name, gamePath, imageData);
     {
-        std::lock_guard guard(_lock);
-
         // Don't add a title already present in the list
         for (auto gameInfo : fullGameList) {
             if (titleId == gameInfo->titleId) {
@@ -107,6 +102,9 @@ int GameList::add(struct MCPTitleListType *title) {
 
 int32_t GameList::readGameList() {
     int32_t cnt = 0;
+
+    // Wait to avoid crash in MCP_* functions on cemu with wine
+    usleep(10);
 
     MCPError mcp = MCP_Open();
     if (mcp < 0) {
@@ -161,7 +159,7 @@ int32_t GameList::readGameList() {
 }
 
 void GameList::updateGameNames() {
-    std::lock_guard guard(_lock);
+    asyncLoadingWorking++;
     ACPMetaXml *meta = (ACPMetaXml *) malloc(0x4000);
 
     for (auto newHeader : fullGameList) {
@@ -173,7 +171,7 @@ void GameList::updateGameNames() {
 
         DEBUG_FUNCTION_LINE("Load extra infos of %016llX", newHeader->titleId);
 
-        memset(meta, 0, sizeof(0x4000));
+        memset(meta, 0, 0x4000);
         auto acp = ACPGetTitleMetaXml(newHeader->titleId, meta);
         if (acp == ACP_RESULT_SUCCESS && meta->shortname_en != NULL && *meta->shortname_en != 0 && newHeader->name != meta->shortname_en) {
             saveNeeded      = true;
@@ -183,11 +181,16 @@ void GameList::updateGameNames() {
         }
     }
     free(meta);
+
+    // Save titles to file to speedup loading the next time
+    if (!stopAsyncLoading)
+        save();
+
+    asyncLoadingWorking--;
 }
 
 void GameList::updateGameImages() {
-    std::lock_guard guard(_lock);
-
+    asyncLoadingWorking++;
     for (auto newHeader : fullGameList) {
         DCFlushRange(&stopAsyncLoading, sizeof(stopAsyncLoading));
         if (stopAsyncLoading) {
@@ -223,11 +226,12 @@ void GameList::updateGameImages() {
                 // FSUtils::saveBufferToFile(cachepath.c_str(), buffer, bufferSize); // Save same as original
 
                 // Save compressed image
-                std::string savePath = "fs:/vol/external01/wiiu/men/icon/" + getTitleidAsString(newHeader->titleId) + ".png";
-                imageConvert(filepath.c_str(), savePath.c_str());
+                imageConvert(filepath.c_str(), cachepath.c_str());
             }
         }
     }
+
+    asyncLoadingWorking--;
 }
 
 
@@ -240,7 +244,6 @@ bool GameList::loadFromConfig(bool updateExistingOnly) {
         return false;
 
     std::string strBuffer((char *) buffer);
-    free(buffer);
 
     // Remove '\r'
     strBuffer.erase(std::remove(strBuffer.begin(), strBuffer.end(), '\r'), strBuffer.end());
@@ -266,6 +269,8 @@ bool GameList::loadFromConfig(bool updateExistingOnly) {
         }
     }
 
+    free(buffer);
+
     return true;
 }
 
@@ -273,7 +278,6 @@ bool GameList::setTitleName(uint64_t titleId, std::string name) {
     // TODO: Add ref counter on gameInfo?
     gameInfo *gameInfo = getGameInfo(titleId);
     if (gameInfo != nullptr) {
-        std::lock_guard guard(_lock);
         gameInfo->name = name;
         return true;
     }
@@ -281,8 +285,6 @@ bool GameList::setTitleName(uint64_t titleId, std::string name) {
 }
 
 void GameList::sortByName() {
-    std::lock_guard guard(_lock);
-
     std::sort(fullGameList.begin(),
               fullGameList.end(),
               [](gameInfo *l, gameInfo *r) {
@@ -301,17 +303,20 @@ int32_t GameList::load() {
     readGameList();
 
     loadFromConfig(true);
+
+    // TODO: Use order from the cache file
     sortByName();
 
     for (auto gameInfo : fullGameList) {
         titleAdded(gameInfo);
     }
 
-    // AsyncExecutor::execute([&] { updateTitleInfo(); });
+    // Load from this thread to avoid crashes for now
+    // TODO: Load images as a background task
     updateGameImages();
-    updateGameNames();
+    // AsyncExecutor::execute([&] { updateGameImages(); });
+    AsyncExecutor::execute([&] { updateGameNames(); });
 
-    save();
     return size();
 }
 
@@ -321,7 +326,6 @@ int32_t GameList::save() {
 
     CFile file(gamesCache, CFile::WriteOnly);
     if (file.isOpen()) {
-        std::lock_guard guard(_lock);
         for (int i = 0; i < (int) fullGameList.size(); i++) {
             gameInfo *game = fullGameList[i];
             // Format: titleId, appType, gamePath, folder, position, name

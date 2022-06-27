@@ -42,7 +42,7 @@ MainWindow::MainWindow(int32_t w, int32_t h)
     SetupMainView();
     gameList.titleUpdated.connect(this, &MainWindow::OnGameTitleUpdated);
     gameList.titleAdded.connect(this, &MainWindow::OnGameTitleAdded);
-    AsyncExecutor::execute([&] { gameList.load(); });
+    gameList.load();
 }
 
 MainWindow::~MainWindow() {
@@ -339,9 +339,9 @@ void MainWindow::OnOpenEffectFinish(GuiElement *element) {
 
 void MainWindow::OnCloseEffectFinish(GuiElement *element) {
     DEBUG_FUNCTION_LINE("Remove %08X", element);
-    //! remove element from draw list and push to delete queue
+    //! remove element from draw list and detele it
     remove(element);
-    AsyncExecutor::pushForDelete(element);
+    delete element;
 }
 
 void MainWindow::OnSettingsButtonClicked(GuiElement *element) {

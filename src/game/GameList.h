@@ -15,6 +15,7 @@ typedef struct _gameInfo {
     MCPAppType appType;
     std::string name;
     std::string gamePath;
+    std::string vdir;
     GuiImageData *imageData;
 } gameInfo;
 
@@ -25,13 +26,11 @@ public:
     ~GameList();
 
     int32_t size() {
-        std::lock_guard guard(_lock);
         int32_t res = fullGameList.size();
         return res;
     }
 
     gameInfo *operator[](int32_t i) {
-        std::lock_guard guard(_lock);
         if (i >= 0 && i < (int32_t) fullGameList.size()) {
             return fullGameList[i];
         }
@@ -46,8 +45,14 @@ public:
     int32_t save();
 
     void loadAbort() {
+        // Ask threads to terminate
         stopAsyncLoading = true;
         DCFlushRange(&stopAsyncLoading, sizeof(stopAsyncLoading));
+
+        // Wait until all threads are terminated
+        while (asyncLoadingWorking > 0) {
+            usleep(100000);
+        }
     }
 
     sigslot::signal1<gameInfo *> titleUpdated;
@@ -60,9 +65,8 @@ protected:
 
     std::vector<gameInfo *> fullGameList;
 
-    std::mutex _lock;
-
-    std::atomic<bool> stopAsyncLoading = false;
+    std::atomic<bool> stopAsyncLoading   = false;
+    std::atomic<int> asyncLoadingWorking = 0;
 
 private:
     GuiImageData iconvWii;
